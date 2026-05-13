@@ -20,6 +20,7 @@ Integration service:
 Important Bluetooth note:
 - Passive advertisement-only proxies are not enough for lock control
 - Shelly Bluetooth proxy sightings can help discovery, but active GATT connectivity is what actually matters for operating the lock
+- If HA decides that the advertisement is not connectable, it will cause status updates and lock controls to fail
 
 ## Install
 You can install using HACS:
