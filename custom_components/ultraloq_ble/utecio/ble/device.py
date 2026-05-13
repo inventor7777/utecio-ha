@@ -294,6 +294,16 @@ class UtecBleRequest:
         data: bytes = bytes(),
         auth_required: bool = False,
     ):
+        if command in {
+            BLECommandCode.ADMIN_LOGIN,
+            BLECommandCode.UNLOCK,
+            BLECommandCode.BOLT_LOCK,
+            BLECommandCode.SET_LOCK_STATUS,
+            BLECommandCode.SET_AUTOLOCK,
+            BLECommandCode.SET_WORK_MODE,
+        }:
+            auth_required = True
+
         self.command = command
         self.device = device
         self.uuid = DeviceServiceUUID.DATA.value
