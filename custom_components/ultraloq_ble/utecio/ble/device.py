@@ -101,7 +101,7 @@ class UtecBleDevice:
         new_device.sn = json_config["params"]["serialnumber"]
         new_device.model = json_config["model"]
         new_device.config = json_config
-        logger.warning(
+        logger.debug(
             "Loaded Ultraloq device name=%s model=%s mac=%s wurx=%s uid=%s password=%s",
             new_device.name,
             new_device.model,
@@ -350,7 +350,7 @@ class UtecBleRequest:
         self._write_pos += data_len
 
     def _append_auth(self, uid: str, password: str = ""):
-        logger.warning(
+        logger.debug(
             "Building auth payload uid=%s password=%s password_len=%s for %s",
             uid,
             password,
@@ -416,7 +416,7 @@ class UtecBleRequest:
     async def _get_response(self, client: BleakClient):
         self.response = UtecBleResponse(self, self.device)
         try:
-            logger.warning(
+            logger.debug(
                 "(%s) Sending %s plain=%s encrypted=%s auth_required=%s uid=%s password=%s",
                 self.device.mac_uuid,
                 self.command.name,
@@ -466,7 +466,7 @@ class UtecBleResponse:
         self, sender: BleakGATTCharacteristic, data: bytearray
     ):
         try:
-            logger.warning(
+            logger.debug(
                 "(%s) Notification chunk for %s sender=%s raw=%s",
                 self.device.mac_uuid,
                 self.request.command.name,
@@ -553,7 +553,7 @@ class UtecBleResponse:
 
     async def _read_response(self):
         try:
-            logger.warning(
+            logger.debug(
                 "(%s) Parsed response cmd=%s success=%s package=%s data=%s",
                 self.device.mac_uuid,
                 self.command.name,

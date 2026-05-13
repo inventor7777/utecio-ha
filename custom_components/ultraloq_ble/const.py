@@ -14,6 +14,8 @@ PLATFORMS = [Platform.LOCK, Platform.SENSOR, Platform.NUMBER]
 
 DEFAULT_NAME = "Ultraloq Bluetooth"
 TIMEOUT = 20
+CONF_API_DEVICES = "api_devices"
+SERVICE_REFRESH_LOCKS = "refresh_locks"
 
 UL_ERRORS = (asyncio.TimeoutError, ClientConnectionError)
 

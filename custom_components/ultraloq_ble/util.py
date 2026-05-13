@@ -1,6 +1,8 @@
 """Utilities for Ultraloq Bluetooth Integration."""
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -15,8 +17,25 @@ async def async_validate_api(hass: HomeAssistant, email: str, password: str) -> 
         email=email, password=password, session=async_get_clientsession(hass)
     )
 
+    locks = await async_fetch_api_devices(hass, email, password)
+    if not locks:
+        LOGGER.error("Could not retrieve any locks from Utec servers")
+        raise NoDevicesError
+    else:
+        return True
+
+
+async def async_fetch_api_devices(
+    hass: HomeAssistant, email: str, password: str
+) -> list[dict[str, Any]]:
+    """Fetch raw device metadata from the UTEC cloud API."""
+
+    client = UtecClient(
+        email=email, password=password, session=async_get_clientsession(hass)
+    )
+
     try:
-        await client.connect()
+        return await client.get_json()
     except UL_ERRORS as err:
         LOGGER.error("Failed to get information from UTEC servers: %s", err)
         raise ConnectionError from err
@@ -26,13 +45,6 @@ async def async_validate_api(hass: HomeAssistant, email: str, password: str) -> 
     except InvalidResponse as err:
         LOGGER.error("Received an unexpected response from UTEC servers: %s", err)
         raise ConnectionError from err
-
-    locks: list = await client.get_json()
-    if not locks:
-        LOGGER.error("Could not retrieve any locks from Utec servers")
-        raise NoDevicesError
-    else:
-        return True
 
 
 class NoDevicesError(Exception):

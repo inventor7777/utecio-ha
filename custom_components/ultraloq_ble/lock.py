@@ -45,8 +45,6 @@ async def async_setup_entry(
 class UtecLock(LockEntity):
     """Representation of Ultraloq Device."""
 
-    _attr_supported_features = [LockEntityFeature.OPEN]
-
     def __init__(
         self, hass: HomeAssistant, lock: UtecBleLock, scan_interval: int
     ) -> None:
@@ -61,6 +59,7 @@ class UtecLock(LockEntity):
         self._cancel_unavailable_track = None
         self._attributes = {}
         self._update_in_progress = False
+        self._attr_supported_features = LockEntityFeature(0)
         if not hasattr(self.lock, "_ha_state_callbacks"):
             self.lock._ha_state_callbacks = []
         # uteclogger.setLevel(LOGGER.level)
