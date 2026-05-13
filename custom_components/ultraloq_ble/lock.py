@@ -1,6 +1,5 @@
 """Lock platform for Ultraloq integration."""
 from __future__ import annotations
-import asyncio
 
 from typing import Any
 from datetime import timedelta
@@ -237,10 +236,16 @@ class UtecLock(LockEntity):
             self.update_track_cancel = async_call_later(
                 self.hass,
                 timedelta(seconds=offset),
-                lambda now: self.hass.async_create_task(self.request_update()),
+                self._schedule_request_update,
             )
 
-    async def request_update(self):
+    @callback
+    def _schedule_request_update(self, _now) -> None:
+        """Schedule a refresh task safely from any callback context."""
+        self.hass.add_job(self.request_update)
+
+    @callback
+    def request_update(self):
         """Request an update of the lock state."""
         if self.update_track_cancel:
             self.update_track_cancel()
