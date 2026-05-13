@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__package__)
 
 DEFAULT_SCAN_INTERVAL = 300
 DOMAIN = "ultraloq_ble"
-PLATFORMS = [Platform.LOCK]
+PLATFORMS = [Platform.LOCK, Platform.SENSOR, Platform.NUMBER]
 
 DEFAULT_NAME = "Ultraloq Bluetooth"
 TIMEOUT = 20

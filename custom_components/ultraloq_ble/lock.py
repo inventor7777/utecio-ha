@@ -19,6 +19,7 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later
@@ -54,11 +55,14 @@ class UtecLock(LockEntity):
         self.lock: UtecBleLock = lock
         self._attr_is_locked = True
         self.lock.async_bledevice_callback = self.async_bledevice_callback
+        self.lock._ha_available = True
         self.scaninterval = scan_interval
         self.update_track_cancel = None
         self._cancel_unavailable_track = None
         self._attributes = {}
         self._update_in_progress = False
+        if not hasattr(self.lock, "_ha_state_callbacks"):
+            self.lock._ha_state_callbacks = []
         # uteclogger.setLevel(LOGGER.level)
 
     def _candidate_addresses(self) -> list[str]:
@@ -80,6 +84,21 @@ class UtecLock(LockEntity):
     #     """Return device registry information for this entity."""
 
     #     return self.lock.config
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device registry information for this lock."""
+
+        identifiers = {(DOMAIN, self.lock.mac_uuid)}
+        info: DeviceInfo = {
+            "identifiers": identifiers,
+            "name": self.lock.name,
+            "manufacturer": "U-tec",
+            "model": self.lock.model or "Ultraloq Lock",
+        }
+        if self.lock.sn:
+            info["serial_number"] = self.lock.sn
+        return info
 
     @property
     def extra_state_attributes(self):
@@ -119,6 +138,7 @@ class UtecLock(LockEntity):
 
     async def async_added_to_hass(self):
         """Run when entity about to be added to hass."""
+        self.lock._ha_state_callbacks.append(self._handle_lock_state_update)
         address = self.lock.wurx_uuid if self.lock.wurx_uuid else self.lock.mac_uuid
         self.async_on_remove(
             bluetooth.async_track_unavailable(
@@ -146,6 +166,8 @@ class UtecLock(LockEntity):
 
     async def async_will_remove_from_hass(self):
         """Run when entity will be removed from hass."""
+        if self._handle_lock_state_update in self.lock._ha_state_callbacks:
+            self.lock._ha_state_callbacks.remove(self._handle_lock_state_update)
         if self.update_track_cancel:
             self.update_track_cancel()
         return await super().async_will_remove_from_hass()
@@ -234,6 +256,8 @@ class UtecLock(LockEntity):
             self.update_track_cancel = None
         LOGGER.debug("%s unavailable.", self.lock.name)
         self._attr_available = False
+        self.lock._ha_available = False
+        self._notify_lock_state_listeners()
         self.async_write_ha_state()
 
     @callback
@@ -243,8 +267,22 @@ class UtecLock(LockEntity):
         change: bluetooth.BluetoothChange,
     ) -> None:
         self._attr_available = True
+        self.lock._ha_available = True
+        self._notify_lock_state_listeners()
         self.async_write_ha_state()
         self.schedule_update_lock_state(2)
+
+    @callback
+    def _handle_lock_state_update(self) -> None:
+        """Handle shared lock state update callback."""
+        self.async_write_ha_state()
+
+    @callback
+    def _notify_lock_state_listeners(self) -> None:
+        """Notify all entities bound to this lock to refresh state."""
+
+        for callback_func in list(self.lock._ha_state_callbacks):
+            callback_func()
 
     def schedule_update_lock_state(self, offset: int):
         """Schedule an update from the lock."""
@@ -290,6 +328,7 @@ class UtecLock(LockEntity):
             LOGGER.error(e)
         finally:
             self._update_in_progress = False
+            self._notify_lock_state_listeners()
             self.schedule_update_lock_state(self.scaninterval)
 
     async def async_lock(self, **kwargs):
