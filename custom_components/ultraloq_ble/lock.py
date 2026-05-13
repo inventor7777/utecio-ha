@@ -107,7 +107,9 @@ class UtecLock(LockEntity):
 
         attrs = {
             "battery_level": DeviceBatteryLevel(self.lock.battery).name,
-            "autolock_time": self.lock.autolock_time if self.lock.autolock_time else -1,
+            "autolock_time": (
+                self.lock.autolock_time if self.lock.autolock_time >= 0 else -1
+            ),
             "lock_status": DeviceLockStatus(self.lock.lock_status).name,
             "bolt_status": DeviceLockStatus(self.lock.bolt_status).name,
             "lock_mode": DeviceLockWorkMode(self.lock.lock_mode).name,
