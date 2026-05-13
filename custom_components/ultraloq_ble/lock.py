@@ -58,6 +58,7 @@ class UtecLock(LockEntity):
         self.update_track_cancel = None
         self._cancel_unavailable_track = None
         self._attributes = {}
+        self._update_in_progress = False
         # uteclogger.setLevel(LOGGER.level)
 
     def _candidate_addresses(self) -> list[str]:
@@ -107,6 +108,14 @@ class UtecLock(LockEntity):
         """Return name of the entity."""
 
         return self.lock.name
+
+    def _sync_state_from_lock(self) -> None:
+        """Update the entity state from the latest lock data."""
+
+        if self.lock.lock_status == DeviceLockStatus.UNLOCKED.value:
+            self._attr_is_locked = False
+        elif self.lock.lock_status == DeviceLockStatus.LOCKED.value:
+            self._attr_is_locked = True
 
     async def async_added_to_hass(self):
         """Run when entity about to be added to hass."""
@@ -162,47 +171,54 @@ class UtecLock(LockEntity):
             if ble_device := bluetooth.async_ble_device_from_address(
                 self.hass, candidate, connectable=False
             ):
+                self._attributes["ble_connectable"] = False
+                self._attributes["ble_seen_address"] = candidate
                 LOGGER.warning(
-                    "Using non-connectable BLE advertisement for %s at %s",
+                    "Found only non-connectable BLE advertisement for %s at %s",
                     self.lock.name,
                     candidate,
                 )
-                return ble_device
+                continue
 
             if service_info := bluetooth.async_last_service_info(
                 self.hass, candidate, connectable=False
             ):
                 LOGGER.warning(
-                    "Using non-connectable BLE service info for %s at %s",
+                    "Found only non-connectable BLE service info for %s at %s",
                     self.lock.name,
                     candidate,
                 )
                 self._attributes["ble_connectable"] = False
                 self._attributes["ble_seen_address"] = candidate
-                return service_info.device
+                self._attributes["ble_source"] = service_info.source
+                continue
 
         normalized_requested = device.replace(":", "").lower()
         for service_info in bluetooth.async_discovered_service_info(
             self.hass, connectable=False
         ):
             if service_info.name == self.lock.name:
-                LOGGER.warning(
-                    "Resolved Ultraloq %s by name using discovered address %s instead of %s",
-                    self.lock.name,
-                    service_info.address,
-                    device,
-                )
                 self._attributes["ble_connectable"] = service_info.connectable
                 self._attributes["ble_seen_address"] = service_info.address
                 self._attributes["ble_source"] = service_info.source
-                return service_info.device
+                if service_info.connectable:
+                    LOGGER.warning(
+                        "Resolved Ultraloq %s by name using discovered address %s instead of %s",
+                        self.lock.name,
+                        service_info.address,
+                        device,
+                    )
+                    return service_info.device
+                continue
 
             normalized_seen = service_info.address.replace(":", "").lower()
             if normalized_seen == normalized_requested:
                 self._attributes["ble_connectable"] = service_info.connectable
                 self._attributes["ble_seen_address"] = service_info.address
                 self._attributes["ble_source"] = service_info.source
-                return service_info.device
+                if service_info.connectable:
+                    return service_info.device
+                continue
 
         LOGGER.warning(
             "Home Assistant cannot currently resolve BLE device for %s. Tried addresses: %s",
@@ -213,7 +229,9 @@ class UtecLock(LockEntity):
 
     @callback
     def _unavailable_callback(self, info: bluetooth.BluetoothServiceInfoBleak) -> None:
-        self.update_track_cancel()
+        if self.update_track_cancel:
+            self.update_track_cancel()
+            self.update_track_cancel = None
         LOGGER.debug("%s unavailable.", self.lock.name)
         self._attr_available = False
         self.async_write_ha_state()
@@ -232,6 +250,7 @@ class UtecLock(LockEntity):
         """Schedule an update from the lock."""
         if self.update_track_cancel:
             self.update_track_cancel()
+            self.update_track_cancel = None
         if self._attr_available:
             self.update_track_cancel = async_call_later(
                 self.hass,
@@ -249,19 +268,29 @@ class UtecLock(LockEntity):
         """Request an update of the lock state."""
         if self.update_track_cancel:
             self.update_track_cancel()
+            self.update_track_cancel = None
 
-        if self.enabled and self.hass and not self._update_staged:
+        if (
+            self.enabled
+            and self.hass
+            and not self._update_staged
+            and not self._update_in_progress
+        ):
             self.schedule_update_ha_state(force_refresh=True)
-            self.schedule_update_lock_state(self.scaninterval)
 
     async def async_update(self, **kwargs):
         """Update the lock."""
         LOGGER.debug("Updating %s with scan interval: %s", self.name, self.scaninterval)
+        self._update_in_progress = True
         try:
             await self.lock.async_update_status()
+            self._sync_state_from_lock()
             LOGGER.info("(%s) Updated.", self.name)
         except (UtecBleDeviceError, UtecBleNotFoundError) as e:
             LOGGER.error(e)
+        finally:
+            self._update_in_progress = False
+            self.schedule_update_lock_state(self.scaninterval)
 
     async def async_lock(self, **kwargs):
         """Lock the lock."""

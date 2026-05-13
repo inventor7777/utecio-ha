@@ -313,21 +313,7 @@ class UtecBleRequest:
         self.data = data
         self.auth_required = auth_required
         self._auth_appended = False
-
-        self.buffer = bytearray(5120)
-        self.buffer[0] = 0x7F
-        byte_array = bytearray(int.to_bytes(2, 2, "little"))
-        self.buffer[1] = byte_array[0]
-        self.buffer[2] = byte_array[1]
-        self.buffer[3] = command.value
-        self._write_pos = 4
-
-        if auth_required and device is not None:
-            self._append_auth(device.uid, device.password)
-        if data:
-            self._append_data(data)
-        self._append_length()
-        self._append_crc()
+        self._build_packet()
 
     def ensure_auth(self) -> None:
         """Attach auth bytes once the request has a device reference."""
@@ -337,7 +323,24 @@ class UtecBleRequest:
         if self.device is None:
             raise ValueError(f"Device is required for auth command {self.command.name}")
 
-        self._append_auth(self.device.uid, self.device.password)
+        self._build_packet()
+
+    def _build_packet(self) -> None:
+        """Build the current request buffer from scratch."""
+
+        self._auth_appended = False
+        self.buffer = bytearray(5120)
+        self.buffer[0] = 0x7F
+        byte_array = bytearray(int.to_bytes(2, 2, "little"))
+        self.buffer[1] = byte_array[0]
+        self.buffer[2] = byte_array[1]
+        self.buffer[3] = self.command.value
+        self._write_pos = 4
+
+        if self.auth_required and self.device is not None:
+            self._append_auth(self.device.uid, self.device.password)
+        if self.data:
+            self._append_data(self.data)
         self._append_length()
         self._append_crc()
 
