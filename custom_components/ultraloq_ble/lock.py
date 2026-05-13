@@ -300,6 +300,7 @@ class UtecLock(LockEntity):
     @callback
     def _handle_lock_state_update(self) -> None:
         """Handle shared lock state update callback."""
+        self._sync_state_from_lock()
         self.async_write_ha_state()
 
     @callback
