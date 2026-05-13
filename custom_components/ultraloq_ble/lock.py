@@ -115,7 +115,7 @@ class UtecLock(LockEntity):
                 self.hass,
                 self._unavailable_callback,
                 address,
-                connectable=True,
+                connectable=False,
             )
         )
         self.async_on_remove(
@@ -128,6 +128,7 @@ class UtecLock(LockEntity):
         )
         self._attr_available = any(
             bluetooth.async_address_present(self.hass, candidate, connectable=True)
+            or bluetooth.async_address_present(self.hass, candidate, connectable=False)
             for candidate in self._candidate_addresses()
         )
         self.schedule_update_lock_state(2)
@@ -157,9 +158,29 @@ class UtecLock(LockEntity):
             ):
                 return service_info.device
 
+            if ble_device := bluetooth.async_ble_device_from_address(
+                self.hass, candidate, connectable=False
+            ):
+                LOGGER.warning(
+                    "Using non-connectable BLE advertisement for %s at %s",
+                    self.lock.name,
+                    candidate,
+                )
+                return ble_device
+
+            if service_info := bluetooth.async_last_service_info(
+                self.hass, candidate, connectable=False
+            ):
+                LOGGER.warning(
+                    "Using non-connectable BLE service info for %s at %s",
+                    self.lock.name,
+                    candidate,
+                )
+                return service_info.device
+
         normalized_requested = device.replace(":", "").lower()
         for service_info in bluetooth.async_discovered_service_info(
-            self.hass, connectable=True
+            self.hass, connectable=False
         ):
             if service_info.name == self.lock.name:
                 LOGGER.warning(
