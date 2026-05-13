@@ -61,6 +61,15 @@ class UtecLock(LockEntity):
         self._attributes = {}
         # uteclogger.setLevel(LOGGER.level)
 
+    def _candidate_addresses(self) -> list[str]:
+        """Return candidate BLE addresses to try for this lock."""
+
+        candidates: list[str] = []
+        for address in (self.lock.mac_uuid, self.lock.wurx_uuid):
+            if address and address not in candidates:
+                candidates.append(address)
+        return candidates
+
     @property
     def should_poll(self) -> bool:
         """False if entity pushes its state to HA."""
@@ -117,6 +126,10 @@ class UtecLock(LockEntity):
                 bluetooth.BluetoothScanningMode.ACTIVE,
             )
         )
+        self._attr_available = any(
+            bluetooth.async_address_present(self.hass, candidate, connectable=True)
+            for candidate in self._candidate_addresses()
+        )
         self.schedule_update_lock_state(2)
         return await super().async_added_to_hass()
 
@@ -128,9 +141,45 @@ class UtecLock(LockEntity):
 
     async def async_bledevice_callback(self, device: str) -> BLEDevice | Any:
         """Return BLEDevice from HA bleak instance if available."""
-        return bluetooth.async_ble_device_from_address(
-            self.hass, device, connectable=True
+        candidates = [device]
+        for candidate in self._candidate_addresses():
+            if candidate not in candidates:
+                candidates.append(candidate)
+
+        for candidate in candidates:
+            if ble_device := bluetooth.async_ble_device_from_address(
+                self.hass, candidate, connectable=True
+            ):
+                return ble_device
+
+            if service_info := bluetooth.async_last_service_info(
+                self.hass, candidate, connectable=True
+            ):
+                return service_info.device
+
+        normalized_requested = device.replace(":", "").lower()
+        for service_info in bluetooth.async_discovered_service_info(
+            self.hass, connectable=True
+        ):
+            if service_info.name == self.lock.name:
+                LOGGER.warning(
+                    "Resolved Ultraloq %s by name using discovered address %s instead of %s",
+                    self.lock.name,
+                    service_info.address,
+                    device,
+                )
+                return service_info.device
+
+            normalized_seen = service_info.address.replace(":", "").lower()
+            if normalized_seen == normalized_requested:
+                return service_info.device
+
+        LOGGER.warning(
+            "Home Assistant cannot currently resolve BLE device for %s. Tried addresses: %s",
+            self.lock.name,
+            ", ".join(candidates),
         )
+        return None
 
     @callback
     def _unavailable_callback(self, info: bluetooth.BluetoothServiceInfoBleak) -> None:
@@ -157,7 +206,7 @@ class UtecLock(LockEntity):
             self.update_track_cancel = async_call_later(
                 self.hass,
                 timedelta(seconds=offset),
-                lambda Now: asyncio.run(self.request_update()),
+                lambda now: self.hass.async_create_task(self.request_update()),
             )
 
     async def request_update(self):
