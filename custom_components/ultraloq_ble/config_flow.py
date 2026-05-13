@@ -13,7 +13,14 @@ from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import CONF_SCAN_INTERVAL
 
-from .const import DEFAULT_NAME, DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
+from .const import (
+    CONF_STAGGER_DELAY,
+    DEFAULT_NAME,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_STAGGER_DELAY,
+    DOMAIN,
+    LOGGER,
+)
 from .util import NoDevicesError, async_validate_api, InvalidCredentials
 
 DATA_SCHEMA = vol.Schema(
@@ -114,7 +121,10 @@ class UltraloqConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=DEFAULT_NAME,
                     data={CONF_EMAIL: email, CONF_PASSWORD: password},
-                    options={CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL},
+                    options={
+                        CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+                        CONF_STAGGER_DELAY: DEFAULT_STAGGER_DELAY,
+                    },
                 )
 
         return self.async_show_form(
@@ -142,7 +152,13 @@ class UltraloqOptionsFlowHandler(config_entries.OptionsFlow):
                 default=self._config_entry.options.get(
                     CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                 ),
-            ): int
+            ): vol.All(vol.Coerce(int), vol.Range(min=1)),
+            vol.Optional(
+                CONF_STAGGER_DELAY,
+                default=self._config_entry.options.get(
+                    CONF_STAGGER_DELAY, DEFAULT_STAGGER_DELAY
+                ),
+            ): vol.All(vol.Coerce(int), vol.Range(min=0)),
         }
 
         return self.async_show_form(step_id="init", data_schema=vol.Schema(options))

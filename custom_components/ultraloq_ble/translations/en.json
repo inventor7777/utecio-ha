@@ -32,7 +32,8 @@
         "step": {
             "init": {
                 "data": {
-                    "zone_method": "Use zones defined by:"
+                    "scan_interval": "Poll Interval (seconds):",
+                    "stagger_delay": "Stagger Delay Between Locks (seconds):"
                 }
             }
         }

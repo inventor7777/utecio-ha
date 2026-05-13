@@ -24,7 +24,14 @@ from homeassistant.helpers import device_registry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later
 
-from .const import DOMAIN, UTEC_LOCKDATA, DEFAULT_SCAN_INTERVAL, LOGGER
+from .const import (
+    CONF_STAGGER_DELAY,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_STAGGER_DELAY,
+    DOMAIN,
+    LOGGER,
+    UTEC_LOCKDATA,
+)
 
 
 async def async_setup_entry(
@@ -34,6 +41,7 @@ async def async_setup_entry(
 
     data: list[UtecBleLock] = hass.data[DOMAIN][entry.entry_id][UTEC_LOCKDATA]
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    stagger_delay = entry.options.get(CONF_STAGGER_DELAY, DEFAULT_STAGGER_DELAY)
     entities = []
 
     for index, lock in enumerate(data):
@@ -41,7 +49,7 @@ async def async_setup_entry(
             hass,
             lock,
             scan_interval=scan_interval,
-            poll_offset=index * 10,
+            poll_offset=index * stagger_delay,
         )
         entities.append(add)
     async_add_entities(new_entities=entities)

@@ -9,12 +9,14 @@ from homeassistant.const import Platform
 LOGGER = logging.getLogger(__package__)
 
 DEFAULT_SCAN_INTERVAL = 300
+DEFAULT_STAGGER_DELAY = 10
 DOMAIN = "ultraloq_ble"
 PLATFORMS = [Platform.LOCK, Platform.SENSOR, Platform.NUMBER, Platform.BUTTON]
 
 DEFAULT_NAME = "Ultraloq BLE"
 TIMEOUT = 20
 CONF_API_DEVICES = "api_devices"
+CONF_STAGGER_DELAY = "stagger_delay"
 SERVICE_REFRESH_LOCKS = "refresh_locks"
 
 UL_ERRORS = (asyncio.TimeoutError, ClientConnectionError)
