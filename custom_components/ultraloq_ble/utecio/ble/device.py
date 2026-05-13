@@ -56,7 +56,7 @@ class UtecBleDevice:
         self.name = device_name
         self.model: str = device_model
         self.capabilities: DeviceDefinition | Any = known_devices.get(
-            device_model, GenericLock
+            device_model, GenericLock()
         )
         self._requests: list[UtecBleRequest] = []
         self.config: dict[str, Any]
