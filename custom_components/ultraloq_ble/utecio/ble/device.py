@@ -88,10 +88,11 @@ class UtecBleDevice:
 
     @classmethod
     def from_json(cls, json_config: dict[str, Any]):
+        decoded_password = decode_password(json_config["user"]["password"])
         new_device = cls(
             device_name=json_config["name"],
             uid=str(json_config["user"]["uid"]),
-            password=decode_password(json_config["user"]["password"]),
+            password=decoded_password,
             mac_uuid=json_config["uuid"],
             device_model=json_config["model"],
         )
@@ -100,6 +101,15 @@ class UtecBleDevice:
         new_device.sn = json_config["params"]["serialnumber"]
         new_device.model = json_config["model"]
         new_device.config = json_config
+        logger.warning(
+            "Loaded Ultraloq device name=%s model=%s mac=%s wurx=%s uid=%s password=%s",
+            new_device.name,
+            new_device.model,
+            new_device.mac_uuid,
+            new_device.wurx_uuid,
+            new_device.uid,
+            new_device.password,
+        )
 
         return new_device
 
@@ -313,6 +323,13 @@ class UtecBleRequest:
         self._write_pos += data_len
 
     def _append_auth(self, uid: str, password: str = ""):
+        logger.warning(
+            "Building auth payload uid=%s password=%s password_len=%s for %s",
+            uid,
+            password,
+            len(password) if password else 0,
+            self.command.name,
+        )
         if uid:
             byte_array = bytearray(int(uid).to_bytes(4, "little"))
             self.buffer[self._write_pos : self._write_pos + 4] = byte_array
@@ -371,6 +388,16 @@ class UtecBleRequest:
     async def _get_response(self, client: BleakClient):
         self.response = UtecBleResponse(self, self.device)
         try:
+            logger.warning(
+                "(%s) Sending %s plain=%s encrypted=%s auth_required=%s uid=%s password=%s",
+                self.device.mac_uuid,
+                self.command.name,
+                self.package.hex(),
+                self.encrypted_package(self.aes_key).hex(),
+                self.auth_required,
+                self.device.uid,
+                self.device.password,
+            )
             await client.start_notify(self.uuid, self.response._receive_write_response)
             await client.write_gatt_char(
                 self.uuid, self.encrypted_package(self.aes_key)
@@ -411,6 +438,13 @@ class UtecBleResponse:
         self, sender: BleakGATTCharacteristic, data: bytearray
     ):
         try:
+            logger.warning(
+                "(%s) Notification chunk for %s sender=%s raw=%s",
+                self.device.mac_uuid,
+                self.request.command.name,
+                getattr(sender, "uuid", sender),
+                data.hex(),
+            )
             self._append(data, bytearray(self.request.aes_key))
             if self.completed and self.is_valid:
                 await self._read_response()
@@ -491,6 +525,14 @@ class UtecBleResponse:
 
     async def _read_response(self):
         try:
+            logger.warning(
+                "(%s) Parsed response cmd=%s success=%s package=%s data=%s",
+                self.device.mac_uuid,
+                self.command.name,
+                self.success,
+                self.package.hex(),
+                self.data.hex(),
+            )
             self.device.debug(
                 "(%s) Response %s (%s): %s",
                 self.device.mac_uuid,

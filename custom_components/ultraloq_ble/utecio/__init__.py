@@ -1,15 +1,6 @@
 import logging
 
-logger = logging.getLogger("utecio")
-
-logger.setLevel(logging.ERROR)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.ERROR)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-if not logger.hasHandlers():
-    logger.addHandler(ch)
+logger = logging.getLogger("custom_components.ultraloq_ble.utecio")
 
 
 class DeviceDefinition:
