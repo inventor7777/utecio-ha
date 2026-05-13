@@ -1,0 +1,40 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "L'account Xthings (U-tec) è già configurato",
+            "reauth_successful": "La riautenticazione è riuscita"
+        },
+        "error": {
+            "cannot_connect": "Connessione non riuscita",
+            "incorrect_email_pass": "Email e/o password non valide per l'account selezionato",
+            "invalid_auth": "Autenticazione non valida. Le credenziali sono corrette?",
+            "no_pets": "Nessuna serratura trovata nell'account"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "email": "Email",
+                    "password": "Password"
+                },
+                "title": "Inserisci le credenziali del tuo account Xthings (U-tec)"
+            },
+            "reauth_confirm": {
+                "data": {
+                    "email": "Email",
+                    "password": "Password"
+                },
+                "title": "Esegui di nuovo l'autenticazione con le credenziali del tuo account Xthings (U-tec)"
+            }
+        },
+        "title": "Account Xthings (U-tec)"
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "zone_method": "Usa le zone definite da:"
+                }
+            }
+        }
+    }
+}

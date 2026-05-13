@@ -1,15 +1,15 @@
 {
   "domain": "ultraloq_ble",
-  "name": "Ultraloq Bluetooth",
+  "name": "Ultraloq BLE",
   "codeowners": [
-    "@maeneak"
+    "@inventor7777"
   ],
   "config_flow": true,
   "dependencies": ["bluetooth_adapters"],
-  "documentation": "https://github.com/maeneak/utecio-ha",
+  "documentation": "https://github.com/inventor7777/ultraloq-ble-ha",
   "integration_type": "hub",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/maeneak/utecio-ha/issues",
+  "issue_tracker": "https://github.com/inventor7777/ultraloq-ble-ha/issues",
   "requirements": [
     "bleak",
     "bleak-retry-connector",

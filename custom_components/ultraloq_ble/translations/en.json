@@ -1,7 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Utec account is already configured",
+            "already_configured": "Xthings (U-tec) account is already configured",
             "reauth_successful": "Re-authentication was successful"
         },
         "error": {
@@ -16,17 +16,17 @@
                     "email": "Email",
                     "password": "Password"
                 },
-                "title": "Fill in your Utec account credentials"
+                "title": "Fill in your Xthings (U-tec) account credentials"
             },
             "reauth_confirm": {
                 "data": {
                     "email": "Email",
                     "password": "Password"
                 },
-                "title": "Reauthenticate with your Utec account credentials"
+                "title": "Reauthenticate with your Xthings (U-tec) account credentials"
             }
         },
-        "title": "Utec Account"
+        "title": "Xthings (U-tec) Account"
     },
     "options": {
         "step": {

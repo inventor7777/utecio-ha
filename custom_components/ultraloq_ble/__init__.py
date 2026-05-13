@@ -1,4 +1,4 @@
-"""Ultraloq Bluetooth Component."""
+"""Ultraloq BLE component."""
 from __future__ import annotations
 import logging
 from typing import Any

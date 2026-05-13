@@ -1,0 +1,40 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Het Xthings (U-tec)-account is al geconfigureerd",
+            "reauth_successful": "Opnieuw verifiëren is gelukt"
+        },
+        "error": {
+            "cannot_connect": "Verbinding mislukt",
+            "incorrect_email_pass": "Ongeldig e-mailadres en/of ongeldig wachtwoord voor het geselecteerde account",
+            "invalid_auth": "Ongeldige authenticatie. Zijn je inloggegevens correct?",
+            "no_pets": "Geen sloten gevonden in het account"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "email": "E-mailadres",
+                    "password": "Wachtwoord"
+                },
+                "title": "Vul de inloggegevens van je Xthings (U-tec)-account in"
+            },
+            "reauth_confirm": {
+                "data": {
+                    "email": "E-mailadres",
+                    "password": "Wachtwoord"
+                },
+                "title": "Verifieer opnieuw met de inloggegevens van je Xthings (U-tec)-account"
+            }
+        },
+        "title": "Xthings (U-tec)-account"
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "zone_method": "Gebruik zones gedefinieerd door:"
+                }
+            }
+        }
+    }
+}

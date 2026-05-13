@@ -1,4 +1,4 @@
-# Ultraloq Bluetooth
+# ultraloq-ble-ha
 
 [![GitHub Release][releases-shield]][releases]
 [![License][license-shield]](LICENSE)
@@ -8,7 +8,7 @@
 [![Discord][discord-shield]][discord]
 [![Community Forum][forum-shield]][forum]
 
-_Integration to integrate Home Assistant with [utecio][utecio]._
+_A vendored Ultraloq BLE fork for Home Assistant, built on top of [utecio][utecio]._
 
 ## UNDER DEVELOPMENT
 
@@ -26,7 +26,7 @@ _Integration to integrate Home Assistant with [utecio][utecio]._
 1. Download _all_ the files from the `custom_components/ultraloq_ble/` directory (folder) in this repository.
 1. Place the files you downloaded in the new directory (folder) you created.
 1. Restart Home Assistant
-1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Ultraloq Bluetooth"
+1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Ultraloq BLE"
 
 ## Configuration is done in the UI
 
@@ -48,4 +48,4 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
 [forum]: https://community.home-assistant.io/
 [releases-shield]: https://img.shields.io/github/release/ludeeus/integration_blueprint.svg?style=for-the-badge
-[releases]: https://github.com/maeneak/utecio-ha/releases
+[releases]: https://github.com/inventor7777/ultraloq-ble-ha/releases

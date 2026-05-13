@@ -1,16 +1,16 @@
 {
   "config": {
-    "title": "Utec Account",
+    "title": "Xthings (U-tec) Account",
     "step": {
       "user": {
-        "title": "Fill in your Utec account credentials",
+        "title": "Fill in your Xthings (U-tec) account credentials",
         "data": {
           "email": "Email",
           "password": "Password"
         }
       },
       "reauth_confirm": {
-        "title": "Reauthenticate with your Utec account credentials",
+        "title": "Reauthenticate with your Xthings (U-tec) account credentials",
         "data": {
           "email": "Email",
           "password": "Password"
@@ -24,7 +24,7 @@
       "no_pets": "No locks found on account"
     },
     "abort": {
-      "already_configured": "Utec account is already configured",
+      "already_configured": "Xthings (U-tec) account is already configured",
       "reauth_successful": "Re-authentication was successful"
     }
   },

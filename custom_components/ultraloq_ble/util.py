@@ -1,4 +1,4 @@
-"""Utilities for Ultraloq Bluetooth Integration."""
+"""Utilities for Ultraloq BLE integration."""
 from __future__ import annotations
 
 from typing import Any
