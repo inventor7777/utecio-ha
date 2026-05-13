@@ -28,7 +28,9 @@ class UtecBleLock(UtecBleDevice):
         self.add_request(
             UtecBleRequest(BLECommandCode.ADMIN_LOGIN, device=self, auth_required=True)
         )
-        self.add_request(UtecBleRequest(BLECommandCode.UNLOCK))
+        self.add_request(
+            UtecBleRequest(BLECommandCode.UNLOCK, device=self, auth_required=True)
+        )
         if update:
             self.add_request(UtecBleRequest(BLECommandCode.LOCK_STATUS))
 
@@ -38,7 +40,9 @@ class UtecBleLock(UtecBleDevice):
         self.add_request(
             UtecBleRequest(BLECommandCode.ADMIN_LOGIN, device=self, auth_required=True)
         )
-        self.add_request(UtecBleRequest(BLECommandCode.BOLT_LOCK))
+        self.add_request(
+            UtecBleRequest(BLECommandCode.BOLT_LOCK, device=self, auth_required=True)
+        )
         if update:
             self.add_request(UtecBleRequest(BLECommandCode.LOCK_STATUS))
 
