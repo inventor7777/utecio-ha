@@ -36,8 +36,13 @@ async def async_setup_entry(
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     entities = []
 
-    for lock in data:
-        add = UtecLock(hass, lock, scan_interval=scan_interval)
+    for index, lock in enumerate(data):
+        add = UtecLock(
+            hass,
+            lock,
+            scan_interval=scan_interval,
+            poll_offset=index * 10,
+        )
         entities.append(add)
     async_add_entities(new_entities=entities)
 
@@ -46,7 +51,11 @@ class UtecLock(LockEntity):
     """Representation of Ultraloq Device."""
 
     def __init__(
-        self, hass: HomeAssistant, lock: UtecBleLock, scan_interval: int
+        self,
+        hass: HomeAssistant,
+        lock: UtecBleLock,
+        scan_interval: int,
+        poll_offset: int,
     ) -> None:
         """Initialize the Lock."""
         super().__init__()
@@ -55,6 +64,7 @@ class UtecLock(LockEntity):
         self.lock.async_bledevice_callback = self.async_bledevice_callback
         self.lock._ha_available = True
         self.scaninterval = scan_interval
+        self.poll_offset = poll_offset
         self.update_track_cancel = None
         self._cancel_unavailable_track = None
         self._attributes = {}
@@ -168,7 +178,7 @@ class UtecLock(LockEntity):
             or bluetooth.async_address_present(self.hass, candidate, connectable=False)
             for candidate in self._candidate_addresses()
         )
-        self.schedule_update_lock_state(2)
+        self.schedule_update_lock_state(2 + self.poll_offset)
         return await super().async_added_to_hass()
 
     async def async_will_remove_from_hass(self):
@@ -277,7 +287,7 @@ class UtecLock(LockEntity):
         self.lock._ha_available = True
         self._notify_lock_state_listeners()
         self.async_write_ha_state()
-        self.schedule_update_lock_state(2)
+        self.schedule_update_lock_state(2 + self.poll_offset)
 
     @callback
     def _handle_lock_state_update(self) -> None:
