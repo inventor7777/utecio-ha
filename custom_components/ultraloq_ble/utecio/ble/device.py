@@ -209,7 +209,22 @@ class UtecBleDevice:
         finally:
             self._requests.clear()
             if client:
-                await client.disconnect()
+                try:
+                    await client.disconnect()
+                except TimeoutError as err:
+                    logger.warning(
+                        "(%s) Timed out while disconnecting from %s: %s",
+                        self.mac_uuid,
+                        self.name,
+                        err,
+                    )
+                except Exception as err:
+                    logger.warning(
+                        "(%s) Unexpected error while disconnecting from %s: %s",
+                        self.mac_uuid,
+                        self.name,
+                        err,
+                    )
             self.is_busy = False
 
     async def _get_bledevice(self, address: str) -> BLEDevice:
@@ -238,7 +253,22 @@ class UtecBleDevice:
             ble_device_callback=self._brc_get_wurx_device,
         )
         self.debug("(%s) Wake-up reciever %s connected.", self.mac_uuid, self.wurx_uuid)
-        await wclient.disconnect()
+        try:
+            await wclient.disconnect()
+        except TimeoutError as err:
+            logger.warning(
+                "(%s) Timed out while disconnecting wake receiver %s: %s",
+                self.mac_uuid,
+                self.wurx_uuid,
+                err,
+            )
+        except Exception as err:
+            logger.warning(
+                "(%s) Unexpected error while disconnecting wake receiver %s: %s",
+                self.mac_uuid,
+                self.wurx_uuid,
+                err,
+            )
 
 
 class UtecBleRequest:
