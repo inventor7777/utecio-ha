@@ -376,6 +376,24 @@ class UtecBleRequest:
                 self.uuid, self.encrypted_package(self.aes_key)
             )
             await self.response.response_completed.wait()
+            if (
+                self.command
+                in {
+                    BLECommandCode.ADMIN_LOGIN,
+                    BLECommandCode.UNLOCK,
+                    BLECommandCode.BOLT_LOCK,
+                    BLECommandCode.SET_LOCK_STATUS,
+                    BLECommandCode.SET_AUTOLOCK,
+                    BLECommandCode.SET_WORK_MODE,
+                }
+                and not self.response.success
+            ):
+                raise self.device.error(
+                    UtecBleDeviceError(
+                        f"Error communicating with device {self.device.name}({self.device.mac_uuid}).",
+                        f"Command {self.command.name} was rejected by the lock.",
+                    )
+                )
         except Exception as e:
             raise self.device.error(e)
         finally:
@@ -480,6 +498,13 @@ class UtecBleResponse:
                 "Success" if self.success else "Failed",
                 self.package.hex(),
             )
+            if not self.success:
+                logger.warning(
+                    "(%s) Lock reported failure for %s: %s",
+                    self.device.mac_uuid,
+                    self.command.name,
+                    self.package.hex(),
+                )
 
             if self.command == BleResponseCode.GET_LOCK_STATUS:
                 self.device.lock_mode = int(self.data[0])

@@ -267,7 +267,7 @@ class UtecLock(LockEntity):
         """Lock the lock."""
         try:
             await self.lock.async_lock()
-            self._attr_is_locked = True
+            await self.async_update()
             self.async_write_ha_state()
         except (UtecBleDeviceError, UtecBleNotFoundError) as e:
             LOGGER.error(e)
@@ -276,8 +276,8 @@ class UtecLock(LockEntity):
         """Unlock the lock."""
         try:
             await self.lock.async_unlock()
-            self._attr_is_locked = False
-            self.schedule_update_ha_state(force_refresh=False)
+            await self.async_update()
+            self.async_write_ha_state()
             if self.lock.capabilities.autolock and self.lock.autolock_time:
                 async_call_later(
                     self.hass,
