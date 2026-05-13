@@ -34,6 +34,9 @@ Or manually:
 
 ## Notes
 
+### Speed and Reliability
+This integration relies on a direct, active BLE connection to the lock. Ultraloq locks are VERY stingy about BLE connections, even with the offical WiFi bridge. This means that updates may fail, and the update speed will be much lower than a normal Zigbee/WiFi lock. 
+
 ### Offline-ish Behavior
 
 This integration is designed so the cloud is used only when needed:
