@@ -43,7 +43,7 @@ class UtecBleLock(UtecBleDevice):
         return await self.send_requests()
 
     async def async_set_workmode(self, mode: DeviceLockWorkMode):
-        self.add_request(UtecBleRequest(BLECommandCode.ADMIN_LOGIN))
+        self.add_request(UtecBleRequest(BLECommandCode.ADMIN_LOGIN, auth_required=True))
         if self.capabilities.bt264:
             self.add_request(
                 UtecBleRequest(BLECommandCode.SET_LOCK_STATUS, data=bytes([mode.value]))
@@ -57,7 +57,7 @@ class UtecBleLock(UtecBleDevice):
 
     async def async_set_autolock(self, seconds: int):
         if self.capabilities.autolock:
-            self.add_request(UtecBleRequest(BLECommandCode.ADMIN_LOGIN))
+            self.add_request(UtecBleRequest(BLECommandCode.ADMIN_LOGIN, auth_required=True))
             self.add_request(
                 UtecBleRequest(
                     BLECommandCode.SET_AUTOLOCK,
@@ -68,7 +68,7 @@ class UtecBleLock(UtecBleDevice):
 
     async def async_update_status(self):
         self.debug("(%s) %s - Updating lock data...", self.mac_uuid, self.name)
-        self.add_request(UtecBleRequest(BLECommandCode.ADMIN_LOGIN))
+        self.add_request(UtecBleRequest(BLECommandCode.ADMIN_LOGIN, auth_required=True))
         self.add_request(UtecBleRequest(BLECommandCode.LOCK_STATUS))
         if not self.capabilities.bt264:
             self.add_request(UtecBleRequest(BLECommandCode.GET_LOCK_STATUS))
