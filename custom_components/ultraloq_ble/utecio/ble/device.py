@@ -149,7 +149,7 @@ class UtecBleDevice:
                     max_attempts=1 if self.wurx_uuid else 2,
                     ble_device_callback=self._brc_get_lock_device,
                 )
-            except (BleakNotFoundError, BleakError):
+            except (BleakNotFoundError, BleakError, TimeoutError) as first_err:
                 try:
                     if not self.wurx_uuid:
                         raise
@@ -165,11 +165,15 @@ class UtecBleDevice:
                         max_attempts=2,
                         ble_device_callback=self._brc_get_lock_device,
                     )
-                except (BleakError, BleakNotFoundError):
+                except (BleakError, BleakNotFoundError, TimeoutError) as second_err:
                     raise self.error(
                         UtecBleNotFoundError(
                             f"Could not connect to device {self.name}({self.mac_uuid}).",
-                            "Device not found after 2 attempts.",
+                            (
+                                "Connection failed after direct and wake-up attempts. "
+                                f"Direct error: {type(first_err).__name__}: {first_err}. "
+                                f"Wake-up error: {type(second_err).__name__}: {second_err}."
+                            ),
                         )
                     ) from None
 
