@@ -99,7 +99,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.services.async_register(
             DOMAIN,
             SERVICE_REFRESH_LOCKS,
-            lambda call: _async_handle_refresh_locks(hass, call),
+            lambda call: hass.async_create_task(_async_handle_refresh_locks(hass, call)),
         )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

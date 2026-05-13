@@ -1,6 +1,7 @@
 import datetime
 import asyncio
 import hashlib
+import logging
 import struct
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -22,19 +23,39 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 
 
 class UtecBleNotFoundError(Exception):
-    pass
+    def __init__(self, message: str, detail: str | None = None) -> None:
+        super().__init__(message)
+        self.detail = detail
+
+    def __str__(self) -> str:
+        return f"{self.args[0]} {self.detail}" if self.detail else str(self.args[0])
 
 
 class UtecBleError(Exception):
-    pass
+    def __init__(self, message: str, detail: str | None = None) -> None:
+        super().__init__(message)
+        self.detail = detail
+
+    def __str__(self) -> str:
+        return f"{self.args[0]} {self.detail}" if self.detail else str(self.args[0])
 
 
 class UtecBleDeviceError(Exception):
-    pass
+    def __init__(self, message: str, detail: str | None = None) -> None:
+        super().__init__(message)
+        self.detail = detail
+
+    def __str__(self) -> str:
+        return f"{self.args[0]} {self.detail}" if self.detail else str(self.args[0])
 
 
 class UtecBleDeviceBusyError(Exception):
-    pass
+    def __init__(self, message: str, detail: str | None = None) -> None:
+        super().__init__(message)
+        self.detail = detail
+
+    def __str__(self) -> str:
+        return f"{self.args[0]} {self.detail}" if self.detail else str(self.args[0])
 
 
 class UtecBleDevice:
@@ -118,7 +139,7 @@ class UtecBleDevice:
 
     def error(self, e: Exception, note: str = "") -> Exception:
         if note:
-            e.add_note(e)
+            e.add_note(note)
 
         if self.error_callback:
             self.error_callback(e)
@@ -127,8 +148,8 @@ class UtecBleDevice:
         return e
 
     def debug(self, msg: object, *args: object):
-        if logger.level < 20:
-            logger.debug(msg, args)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(msg, *args)
 
     def add_request(self, request: "UtecBleRequest", priority: bool = False):
         request.device = self
@@ -662,8 +683,11 @@ class UtecBleResponse:
             )
 
         except Exception as e:
-            self.device.error(
-                f"({self.device.mac_uuid}) Error updating lock data ({self.command.name}): {e}"
+            raise self.device.error(
+                UtecBleDeviceError(
+                    f"Error updating lock data for {self.device.name}({self.device.mac_uuid}).",
+                    f"While handling {self.command.name}: {e}",
+                )
             )
 
 

@@ -19,7 +19,7 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceInfo
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later
@@ -91,6 +91,12 @@ class UtecLock(LockEntity):
         identifiers = {(DOMAIN, self.lock.mac_uuid)}
         info: DeviceInfo = {
             "identifiers": identifiers,
+            "connections": {
+                (
+                    CONNECTION_BLUETOOTH,
+                    device_registry.format_mac(self.lock.mac_uuid),
+                )
+            },
             "name": self.lock.name,
             "manufacturer": "U-tec",
             "model": self.lock.model or "Ultraloq Lock",

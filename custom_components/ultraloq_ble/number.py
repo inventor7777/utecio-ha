@@ -9,7 +9,8 @@ from homeassistant.components.number import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers import device_registry
+from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, UTEC_LOCKDATA
@@ -76,6 +77,12 @@ class UltraloqAutolockNumber(NumberEntity):
 
         info: DeviceInfo = {
             "identifiers": {(DOMAIN, self.lock.mac_uuid)},
+            "connections": {
+                (
+                    CONNECTION_BLUETOOTH,
+                    device_registry.format_mac(self.lock.mac_uuid),
+                )
+            },
             "name": self.lock.name,
             "manufacturer": "U-tec",
             "model": self.lock.model or "Ultraloq Lock",
