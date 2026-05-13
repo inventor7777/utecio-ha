@@ -6,9 +6,9 @@ from typing import Any
 from datetime import timedelta
 
 from bleak.backends.device import BLEDevice
-from utecio.ble.lock import UtecBleLock
-from utecio.ble.device import UtecBleNotFoundError, UtecBleDeviceError
-from utecio.enums import DeviceBatteryLevel, DeviceLockStatus, DeviceLockWorkMode
+from .utecio.ble.lock import UtecBleLock
+from .utecio.ble.device import UtecBleNotFoundError, UtecBleDeviceError
+from .utecio.enums import DeviceBatteryLevel, DeviceLockStatus, DeviceLockWorkMode
 
 from homeassistant.components import bluetooth
 from homeassistant.components.lock import (

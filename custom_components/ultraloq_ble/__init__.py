@@ -1,7 +1,6 @@
 """Ultraloq Bluetooth Component."""
 from __future__ import annotations
 import logging
-from utecio.api import UtecClient
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
@@ -15,6 +14,7 @@ from .const import (
     UPDATE_LISTENER,
     UTEC_LOCKDATA,
 )
+from .utecio.api import UtecClient
 
 
 def debug_mode():
