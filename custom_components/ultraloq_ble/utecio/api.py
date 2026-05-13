@@ -239,8 +239,26 @@ class UtecClient:
 
         for api_device in self.devices:
             device = UtecBleLock.from_json(api_device)
-            if device.capabilities.bluetooth:
+            capabilities = device.capabilities
+            if isinstance(capabilities, type):
+                try:
+                    capabilities = capabilities()
+                except Exception as err:
+                    logger.warning(
+                        "Failed to initialize capabilities for model %s: %s",
+                        device.model,
+                        err,
+                    )
+                    capabilities = None
+                else:
+                    device.capabilities = capabilities
+
+            if getattr(capabilities, "bluetooth", False):
                 devices.append(device)
+            else:
+                logger.debug(
+                    "Skipping non-BLE or unknown Ultraloq model %s", device.model
+                )
 
         return devices
 

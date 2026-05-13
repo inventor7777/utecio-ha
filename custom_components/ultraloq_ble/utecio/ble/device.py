@@ -55,8 +55,8 @@ class UtecBleDevice:
         self.password: str = password
         self.name = device_name
         self.model: str = device_model
-        self.capabilities: DeviceDefinition | Any = known_devices.get(
-            device_model, GenericLock()
+        self.capabilities: DeviceDefinition | Any = self._resolve_capabilities(
+            device_model
         )
         self._requests: list[UtecBleRequest] = []
         self.config: dict[str, Any]
@@ -72,6 +72,19 @@ class UtecBleDevice:
         self.calendar: datetime.datetime
         self.is_busy = False
         self.device_time_offset: datetime.timedelta
+
+    @staticmethod
+    def _resolve_capabilities(device_model: str) -> DeviceDefinition:
+        """Return a capabilities instance for the provided model."""
+
+        capabilities = known_devices.get(device_model)
+        if isinstance(capabilities, DeviceDefinition):
+            return capabilities
+        if isinstance(capabilities, type) and issubclass(capabilities, DeviceDefinition):
+            return capabilities()
+
+        logger.warning("Unknown Ultraloq model from API: %s", device_model)
+        return GenericLock()
 
     @classmethod
     def from_json(cls, json_config: dict[str, Any]):

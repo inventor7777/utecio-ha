@@ -13,7 +13,7 @@ from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import CONF_SCAN_INTERVAL
 
-from .const import DEFAULT_NAME, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import DEFAULT_NAME, DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
 from .util import NoDevicesError, async_validate_api, InvalidCredentials
 
 DATA_SCHEMA = vol.Schema(
@@ -63,6 +63,9 @@ class UltraloqConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "no_locks"
             except InvalidCredentials:
                 errors["base"] = "invalid_auth"
+            except Exception:
+                LOGGER.exception("Unexpected error during Ultraloq reauthentication")
+                errors["base"] = "cannot_connect"
             else:
                 assert self.entry is not None
 
@@ -101,6 +104,9 @@ class UltraloqConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "no_locks"
             except InvalidCredentials:
                 errors["base"] = "invalid_auth"
+            except Exception:
+                LOGGER.exception("Unexpected error during Ultraloq configuration")
+                errors["base"] = "cannot_connect"
             else:
                 await self.async_set_unique_id(email)
                 self._abort_if_unique_id_configured()
