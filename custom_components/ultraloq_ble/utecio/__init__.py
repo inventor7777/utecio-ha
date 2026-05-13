@@ -472,6 +472,7 @@ known_devices: dict[str, DeviceDefinition] = {
     DeviceLockUL3.model: DeviceLockUL3(),
     DeviceLockUL300.model: DeviceLockUL300(),
     "U-Bolt Pro": DeviceLockUBoltPro(),
+    "U-Bolt-PRO": DeviceLockUBoltPro(),
     "U-Bolt Pro WiFi": DeviceLockUBoltProWiFi(),
     "U-Bolt Pro ZWave": DeviceLockUBoltProZwave(),
 }

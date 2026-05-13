@@ -132,6 +132,7 @@ class UtecBleDevice:
 
     def add_request(self, request: "UtecBleRequest", priority: bool = False):
         request.device = self
+        request.ensure_auth()
         if priority:
             self._requests.insert(0, request)
         else:
@@ -301,6 +302,7 @@ class UtecBleRequest:
         self.sent = False
         self.data = data
         self.auth_required = auth_required
+        self._auth_appended = False
 
         self.buffer = bytearray(5120)
         self.buffer[0] = 0x7F
@@ -310,10 +312,22 @@ class UtecBleRequest:
         self.buffer[3] = command.value
         self._write_pos = 4
 
-        if auth_required:
+        if auth_required and device is not None:
             self._append_auth(device.uid, device.password)
         if data:
             self._append_data(data)
+        self._append_length()
+        self._append_crc()
+
+    def ensure_auth(self) -> None:
+        """Attach auth bytes once the request has a device reference."""
+
+        if not self.auth_required or self._auth_appended:
+            return
+        if self.device is None:
+            raise ValueError(f"Device is required for auth command {self.command.name}")
+
+        self._append_auth(self.device.uid, self.device.password)
         self._append_length()
         self._append_crc()
 
@@ -339,6 +353,7 @@ class UtecBleRequest:
             byte_array[3] = (len(password) << 4) | byte_array[3]
             self.buffer[self._write_pos : self._write_pos + 4] = byte_array[:4]
             self._write_pos += 4
+        self._auth_appended = True
 
     def _append_length(self):
         byte_array = bytearray(int(self._write_pos - 2).to_bytes(2, "little"))
