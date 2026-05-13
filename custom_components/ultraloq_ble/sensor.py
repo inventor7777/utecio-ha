@@ -19,6 +19,12 @@ from .const import DOMAIN, UTEC_LOCKDATA
 from .utecio.ble.lock import UtecBleLock
 from .utecio.enums import DeviceBatteryLevel, DeviceLockStatus, DeviceLockWorkMode
 
+NO_BOLT_STATUS_MODELS = {
+    "U-Bolt-Pro",
+    "U-Bolt-PRO",
+    "U-Bolt Pro",
+}
+
 
 @dataclass(frozen=True, kw_only=True)
 class UltraloqSensorDescription(SensorEntityDescription):
@@ -33,6 +39,7 @@ SENSORS: tuple[UltraloqSensorDescription, ...] = (
         device_class=SensorDeviceClass.ENUM,
         options=[level.name for level in DeviceBatteryLevel if level.name != "NOTSET"],
         entity_category=EntityCategory.DIAGNOSTIC,
+        icon="mdi:battery-bluetooth-variant",
         value_fn=lambda lock: DeviceBatteryLevel(lock.battery).name,
     ),
     UltraloqSensorDescription(
@@ -45,12 +52,14 @@ SENSORS: tuple[UltraloqSensorDescription, ...] = (
         key="bolt_status",
         device_class=SensorDeviceClass.ENUM,
         options=[status.name for status in DeviceLockStatus],
+        icon="mdi:lock-smart",
         value_fn=lambda lock: DeviceLockStatus(lock.bolt_status).name,
     ),
     UltraloqSensorDescription(
         key="lock_mode",
         device_class=SensorDeviceClass.ENUM,
         options=[mode.name for mode in DeviceLockWorkMode],
+        icon="mdi:lock-smart",
         value_fn=lambda lock: DeviceLockWorkMode(lock.lock_mode).name,
     ),
 )
@@ -68,6 +77,14 @@ async def async_setup_entry(
         if not hasattr(lock, "_ha_state_callbacks"):
             lock._ha_state_callbacks = []
         for description in SENSORS:
+            if (
+                description.key == "bolt_status"
+                and (
+                    lock.model in NO_BOLT_STATUS_MODELS
+                    or lock.bolt_status == DeviceLockStatus.UNAVAILABLE.value
+                )
+            ):
+                continue
             entities.append(UltraloqSensor(lock, description))
 
     async_add_entities(entities)
