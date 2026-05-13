@@ -87,13 +87,15 @@ class UtecLock(LockEntity):
         if not self.lock:
             return {}
 
-        return {
+        attrs = {
             "battery_level": DeviceBatteryLevel(self.lock.battery).name,
             "autolock_time": self.lock.autolock_time if self.lock.autolock_time else -1,
             "lock_status": DeviceLockStatus(self.lock.lock_status).name,
             "bolt_status": DeviceLockStatus(self.lock.bolt_status).name,
             "lock_mode": DeviceLockWorkMode(self.lock.lock_mode).name,
         }
+        attrs.update(self._attributes)
+        return attrs
 
     @property
     def unique_id(self) -> str:
@@ -176,6 +178,8 @@ class UtecLock(LockEntity):
                     self.lock.name,
                     candidate,
                 )
+                self._attributes["ble_connectable"] = False
+                self._attributes["ble_seen_address"] = candidate
                 return service_info.device
 
         normalized_requested = device.replace(":", "").lower()
@@ -189,10 +193,16 @@ class UtecLock(LockEntity):
                     service_info.address,
                     device,
                 )
+                self._attributes["ble_connectable"] = service_info.connectable
+                self._attributes["ble_seen_address"] = service_info.address
+                self._attributes["ble_source"] = service_info.source
                 return service_info.device
 
             normalized_seen = service_info.address.replace(":", "").lower()
             if normalized_seen == normalized_requested:
+                self._attributes["ble_connectable"] = service_info.connectable
+                self._attributes["ble_seen_address"] = service_info.address
+                self._attributes["ble_source"] = service_info.source
                 return service_info.device
 
         LOGGER.warning(
