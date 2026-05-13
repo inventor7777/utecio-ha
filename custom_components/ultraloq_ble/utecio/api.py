@@ -8,7 +8,7 @@ import string
 import time
 from collections.abc import Mapping
 from typing import Any
-from . import logger
+from . import known_devices, logger
 
 from aiohttp import ClientResponse, ClientSession
 
@@ -255,6 +255,11 @@ class UtecClient:
 
             if getattr(capabilities, "bluetooth", False):
                 devices.append(device)
+                if device.model not in known_devices:
+                    logger.warning(
+                        "Treating unknown Ultraloq model as BLE-capable: %s",
+                        device.model,
+                    )
             else:
                 logger.debug(
                     "Skipping non-BLE or unknown Ultraloq model %s", device.model

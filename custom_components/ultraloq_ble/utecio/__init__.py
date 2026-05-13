@@ -453,7 +453,8 @@ class GenericLock(DeviceDefinition):
     def __init__(self) -> None:
         super().__init__()
 
-        self.bluetooth = False
+        # Default unknown models to BLE-capable so new Ultraloq variants still surface.
+        self.bluetooth = True
         self.autolock = True
         self.mutemode = True
         self.havesn = True
